@@ -12,6 +12,7 @@ st.set_page_config(page_title="Nomades Mobile Analysis", layout="wide", page_ico
 @st.cache_data
 def load_data():
     df = pd.read_excel('data/mobiles_suisse.xlsx')
+    df = df.round(1)
     return df
 
 def save_comment(name, email, rating, comment):
