@@ -59,15 +59,15 @@ def style_dataframe(df):
             except:
                 pass
         return ''
-    
+
     score_cols = [col for col in df.columns if 'Score' in str(col) or 'score' in str(col).lower()]
-    
-    # Aplica a formatação para 1 casa decimal nas colunas de score
-    fmt = {col: "{:.1f}".format for col in score_cols if pd.api.types.is_numeric_dtype(df[col])}
+    # CORRIGIDO para mostrar só uma casa decimal
+    fmt = {col: "{:.1f}" for col in score_cols if pd.api.types.is_numeric_dtype(df[col])}
     styler = df.style.applymap(highlight_scores, subset=score_cols)
     if fmt:
         styler = styler.format(fmt)
     return styler
+
 def get_smartphone_data_with_scores(df):
     smartphones = {}
     cols = list(df.columns)
