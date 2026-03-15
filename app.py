@@ -7,16 +7,18 @@ from datetime import datetime
 import json
 import os
 
+# Paramètres de configuration principaux de l’application Streamlit (titre, icône, largeur)
 st.set_page_config(page_title="Nomades Mobile Analysis", layout="wide", page_icon="📱")
-#Cette fonction charge les données du fichier Excel
-@st.cache_data #Le décorateur @st.cache_data permet de mettre en cache les données
-def load_data():  # charge 
+
+# Cette fonction charge les données du fichier Excel et les met en cache pour accélérer les chargements suivants.
+@st.cache_data  # Le décorateur @st.cache_data permet de mettre en cache les données
+def load_data():
     df = pd.read_excel('data/mobiles_suisse.xlsx')
     df = df.round(1)
     return df
 
-#function que guarde um nouveaux comentaire dans le fichier JSON, si le fichier existe il lit tout les commentaires sauvegarder
-# Sinon il ajoute un nouveaux commentaire
+# Cette fonction sauvegarde un nouveau commentaire dans un fichier JSON.
+# Si le fichier existe, elle ajoute le commentaire ; sinon, elle crée la liste.
 def save_comment(name, email, rating, comment):
     comments_file = 'data/comments.json'
     
@@ -41,9 +43,8 @@ def save_comment(name, email, rating, comment):
     
     return True
 
-# charge tous les commentaires depuis le fichier JSON.
-# Si le fichei ne existe pas envoi une liste vide
-
+# Cette fonction charge tous les commentaires enregistrés depuis le fichier JSON.
+# Si le fichier n’existe pas, elle retourne une liste vide.
 def load_comments():
     comments_file = 'data/comments.json'
     if os.path.exists(comments_file):
@@ -51,9 +52,11 @@ def load_comments():
             return json.load(f)
     return []
 
+# Cette fonction met en forme un DataFrame Pandas et colorie les scores.
+# Les lignes de score élevées, moyennes ou faibles sont colorées différemment pour faciliter la lecture.
 def style_dataframe(df):
     def highlight_scores(val):
-        if pd.notna(val):  # vérifie si la valeur existe (n’est ni vide ni NaN)
+        if pd.notna(val):  # Vérifie si la valeur existe (n’est ni vide ni NaN)
             try:
                 num_val = float(val)
                 if num_val >= 8:
@@ -65,19 +68,21 @@ def style_dataframe(df):
             except:
                 pass
         return ''
-    # Detetar colunas de scores
+    # Détecte les colonnes contenant des scores.
     score_cols = [col for col in df.columns if 'Score' in str(col) or 'score' in str(col).lower()]
     
-    # FORMATAÇÃO: garantir 1 casa decimal nos scores (como string)
+    # Formate tous les scores à 1 décimale, comme des chaînes de caractères.
     for col in score_cols:
         if pd.api.types.is_numeric_dtype(df[col]):
             df[col] = df[col].map(lambda x: f"{x:.1f}" if pd.notna(x) else x)
     
-    # Segue o Styler habitual
+    # Applique les couleurs définies ci-dessus
     styler = df.style.applymap(highlight_scores, subset=score_cols)
     
     return styler
 
+# Cette fonction construit un dictionnaire associant chaque smartphone à ses scores et caractéristiques.
+# Utile pour les comparaisons, graphiques et analyses détaillées dans l’application.
 def get_smartphone_data_with_scores(df):
     smartphones = {}
     cols = list(df.columns)
@@ -118,9 +123,10 @@ def get_smartphone_data_with_scores(df):
                 else:
                     smartphones[phone_name][category] = row[phone_name]
     return smartphones
-
+# Fonction principale de l’application : initialise l’interface, charge les données et gère la navigation entre les pages.
 def main():
     try:
+        # Chargement des données; gestion des erreurs si le fichier est manquant ou au mauvais format
         df_horizontal = load_data()
     except FileNotFoundError:
         st.error("Error: File 'data/mobiles_suisse.xlsx' not found!")
@@ -131,6 +137,7 @@ def main():
         st.info("Check if the Excel file is in the correct format")
         return
     
+    # Menu latéral de navigation pour accéder aux différentes pages de l’application.
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Go to", [
         "Home",
@@ -141,11 +148,13 @@ def main():
         "Comments"
     ])
     
+    # Bloc d’accueil : introduction et résumé global du projet, statistiques principales
     if page == "Home":
         st.title("Nomades Mobile Analysis")
         st.markdown("**Detailed smartphone comparison** | Swiss Market 2025")
         st.markdown("---")
         col1, col2, col3 = st.columns(3)
+        # Calcul du nombre total de smartphones dans le tableau
         smartphone_cols = [col for col in df_horizontal.columns 
                           if col != 'CARACTÉRISTIQUES' 
                           and 'Score' not in col 
@@ -155,6 +164,7 @@ def main():
         with col1:
             st.metric("Total Smartphones", len(smartphone_cols))
         with col2:
+            # Calcul du prix moyen parmi tous les smartphones
             prix_rows = df_horizontal[df_horizontal['CARACTÉRISTIQUES'] == 'Prix moyen']
             if not prix_rows.empty:
                 prices = []
@@ -171,16 +181,17 @@ def main():
                         except:
                             pass
                 if prices:
-                    avg_price = np.mean(prices)
-                    st.metric("Average Price", f"CHF {avg_price:.0f}")
+                    st.metric("Average Price", f"CHF {np.mean(prices):.0f}")
                 else:
                     st.metric("Average Price", "N/A")
             else:
                 st.metric("Average Price", "N/A")
         with col3:
+            # Heure du nombre total de catégories/critères techniques
             categories = df_horizontal['CARACTÉRISTIQUES'].dropna().tolist()
             st.metric("Total Categories", len(categories))
         st.markdown("---")
+        # Explications des fonctionnalités de l’outil
         st.markdown("### Welcome to Nomades Mobile Analysis")
         st.markdown("This comprehensive tool allows you to:")
         st.markdown("- Compare 9 top smartphones in the Swiss market")
@@ -189,6 +200,7 @@ def main():
         st.markdown("- Make side-by-side comparisons")
         st.markdown("- Share your opinions in the comments section")
         st.markdown("**Use the navigation menu on the left to explore!**")
+         # Page de tableau comparatif : sélection des catégories, options d’affichage et filtrage des données
     elif page == "Comparison Table":
         st.title("Comparison Table")
         st.markdown("---")
@@ -232,12 +244,13 @@ def main():
         if not df_display.empty:
             if highlight_scores:
                 styled_df = style_dataframe(df_display)
-                st.write(styled_df)  # <==== ALTERAÇÃO FUNDAMENTAL!
+                st.write(styled_df)
             else:
                 st.dataframe(df_display, use_container_width=True, height=600, hide_index=True)
         else:
             st.warning("No category selected. Please select at least one category in the filters.")
 
+    # Page d’analyses graphiques et radar : comparaison des scores, graphiques interactifs
     elif page == "Graphics & Analysis":
         st.title("Graphics & Analysis")
         st.markdown("---")
@@ -302,6 +315,7 @@ def main():
             radar_score_options,
             default=radar_score_options[:min(5, len(radar_score_options))]
         )
+          # Affichage du radar : génération d’un radar chart interactif selon la sélection utilisateur
         if selected_phones_radar and radar_categories:
             fig = go.Figure()
             colors = ['#1f77b4', '#ff7f0e', '#2ca02c']
@@ -339,7 +353,9 @@ def main():
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Please select smartphones and categories to display the radar chart.")
+
         st.markdown("---")
+        # Affichage du graphique de distribution des prix par smartphone
         st.subheader("Price Distribution")
         prix_rows = df_horizontal[df_horizontal['CARACTÉRISTIQUES'] == 'Prix moyen']
         if not prix_rows.empty:
@@ -368,6 +384,7 @@ def main():
                 fig.update_layout(title="Price Distribution by Smartphone", height=500)
                 st.plotly_chart(fig, use_container_width=True)
         st.markdown("---")
+        # Affichage du nuage de points ("scatter") : analyse de la corrélation Prix vs Performance
         st.subheader("Price vs Performance Analysis")
         if not prix_rows.empty and score_categories:
             scatter_data = []
@@ -420,6 +437,7 @@ def main():
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
+    # Page des classements: calcul et affichage du top 3, classement général et filtres par catégorie
     elif page == "Rankings":
         st.title("Rankings")
         st.markdown("---")
@@ -470,6 +488,7 @@ def main():
             else:
                 st.warning("No score data available for ranking.")
         st.markdown("---")
+        # Meilleur smartphone pour chaque catégorie (classement par score d’une catégorie choisie)
         st.subheader("Best Smartphone by Category")
         category_select = st.selectbox("Select a category", score_categories if score_categories else [])
         if category_select:
@@ -498,6 +517,7 @@ def main():
             else:
                 st.warning(f"No data available for {category_select}")
         st.markdown("---")
+        # Meilleur rapport qualité/prix (Valeur Score)
         st.subheader("Best Value for Money")
         prix_rows = df_horizontal[df_horizontal['CARACTÉRISTIQUES'] == 'Prix moyen']
         if not prix_rows.empty and score_categories:
@@ -545,6 +565,7 @@ def main():
         else:
             st.warning("Price or score data not available.")
 
+    # Comparaison côte à côte de deux smartphones (toutes les caractéristiques/catégories cote à cote)
     elif page == "Side-by-Side Comparison":
         st.title("Side-by-Side Comparison")
         st.markdown("---")
@@ -575,6 +596,7 @@ def main():
             df_comparison = pd.DataFrame(comparison_data)
             st.dataframe(df_comparison, use_container_width=True, height=600, hide_index=True)
 
+    # Système de commentaires et avis utilisateurs : formulaire et affichage des commentaires récents.
     elif page == "Comments":
         st.title("Comments & Reviews")
         st.markdown("---")
@@ -609,8 +631,10 @@ def main():
         else:
             st.info("No comments yet. Be the first to comment!")
 
+    # Pied de page de l’application
     st.markdown("---")
     st.markdown("**Nomades Mobile Analysis** | Detailed smartphone comparison | 2025")
 
+# Point d’entrée principal du script Streamlit : lance l’app.
 if __name__ == "__main__":
     main()
