@@ -3,18 +3,20 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
-from datetime import datetime
+from datetime import datetime 
 import json
 import os
 
 st.set_page_config(page_title="Nomades Mobile Analysis", layout="wide", page_icon="📱")
-
-@st.cache_data
-def load_data():
+#Cette fonction charge les données du fichier Excel
+@st.cache_data #Le décorateur @st.cache_data permet de mettre en cache les données
+def load_data():  # charge 
     df = pd.read_excel('data/mobiles_suisse.xlsx')
     df = df.round(1)
     return df
 
+#function que guarde um nouveaux comentaire dans le fichier JSON, si le fichier existe il lit tout les commentaires sauvegarder
+# Sinon il ajoute un nouveaux commentaire
 def save_comment(name, email, rating, comment):
     comments_file = 'data/comments.json'
     
@@ -39,6 +41,9 @@ def save_comment(name, email, rating, comment):
     
     return True
 
+# charge tous les commentaires depuis le fichier JSON.
+# Si le fichei ne existe pas envoi une liste vide
+
 def load_comments():
     comments_file = 'data/comments.json'
     if os.path.exists(comments_file):
@@ -48,7 +53,7 @@ def load_comments():
 
 def style_dataframe(df):
     def highlight_scores(val):
-        if pd.notna(val):
+        if pd.notna(val):  # vérifie si la valeur existe (n’est ni vide ni NaN)
             try:
                 num_val = float(val)
                 if num_val >= 8:
@@ -60,11 +65,17 @@ def style_dataframe(df):
             except:
                 pass
         return ''
+    # Detetar colunas de scores
     score_cols = [col for col in df.columns if 'Score' in str(col) or 'score' in str(col).lower()]
-    fmt = {col: "{:.1f}" for col in score_cols if pd.api.types.is_numeric_dtype(df[col])}
+    
+    # FORMATAÇÃO: garantir 1 casa decimal nos scores (como string)
+    for col in score_cols:
+        if pd.api.types.is_numeric_dtype(df[col]):
+            df[col] = df[col].map(lambda x: f"{x:.1f}" if pd.notna(x) else x)
+    
+    # Segue o Styler habitual
     styler = df.style.applymap(highlight_scores, subset=score_cols)
-    if fmt:
-        styler = styler.format(fmt)
+    
     return styler
 
 def get_smartphone_data_with_scores(df):
