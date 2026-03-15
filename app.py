@@ -178,7 +178,6 @@ def main():
         st.markdown("- Make side-by-side comparisons")
         st.markdown("- Share your opinions in the comments section")
         st.markdown("**Use the navigation menu on the left to explore!**")
-
     elif page == "Comparison Table":
         st.title("Comparison Table")
         st.markdown("---")
@@ -227,7 +226,8 @@ def main():
                 st.dataframe(df_display, use_container_width=True, height=600, hide_index=True)
         else:
             st.warning("No category selected. Please select at least one category in the filters.")
-        elif page == "Graphics & Analysis":
+
+    elif page == "Graphics & Analysis":
         st.title("Graphics & Analysis")
         st.markdown("---")
         smartphones_data = get_smartphone_data_with_scores(df_horizontal)
@@ -408,6 +408,7 @@ def main():
                     yaxis=dict(range=[0, 10])
                 )
                 st.plotly_chart(fig, use_container_width=True)
+
     elif page == "Rankings":
         st.title("Rankings")
         st.markdown("---")
@@ -532,6 +533,7 @@ def main():
                 st.warning("Not enough data to calculate value for money.")
         else:
             st.warning("Price or score data not available.")
+
     elif page == "Side-by-Side Comparison":
         st.title("Side-by-Side Comparison")
         st.markdown("---")
@@ -561,6 +563,7 @@ def main():
                 })
             df_comparison = pd.DataFrame(comparison_data)
             st.dataframe(df_comparison, use_container_width=True, height=600, hide_index=True)
+
     elif page == "Comments":
         st.title("Comments & Reviews")
         st.markdown("---")
@@ -594,6 +597,7 @@ def main():
                     st.markdown("---")
         else:
             st.info("No comments yet. Be the first to comment!")
+
     st.markdown("---")
     st.markdown("**Nomades Mobile Analysis** | Detailed smartphone comparison | 2025")
 
