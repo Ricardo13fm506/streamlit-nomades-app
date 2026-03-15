@@ -59,14 +59,16 @@ def style_dataframe(df):
             except:
                 pass
         return ''
-
-    score_cols = [col for col in df.columns if 'Score' in str(col) or 'score' in str(col).lower()]
     
-    # FORMATAÇÃO DIRETA dos valores
+    # DETEÇÃO das colunas de score
+    score_cols = [col for col in df.columns if 'Score' in str(col) or 'score' in str(col).lower()]
+
+    # FORMATAÇÃO DIRETA (não via Styler)
     for col in score_cols:
         if pd.api.types.is_numeric_dtype(df[col]):
             df[col] = df[col].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "")
 
+    # Agora sim, destacar com as cores
     styler = df.style.applymap(highlight_scores, subset=score_cols)
     return styler
 
