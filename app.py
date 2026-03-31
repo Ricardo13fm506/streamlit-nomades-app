@@ -123,6 +123,29 @@ def get_smartphone_data_with_scores(df):
                 else:
                     smartphones[phone_name][category] = row[phone_name]
     return smartphones
+
+def add_score_final_to_smartphones(smartphones_data, df):
+    prix_row = df[df['CARACTÉRISTIQUES'] == 'Prix moyen']
+    for phone in smartphones_data:
+        try:
+            scores = []
+            for cat in [
+                'Score Écran', 'Score Photo', 'Score Performance', 'Score Baterrie',
+                'Score IA & LOGICIEL', 'Score MISES A JOUR', 'Score CONNECTIVITE'
+            ]:
+                val = smartphones_data[phone].get(cat)
+                if pd.notna(val) and isinstance(val, (int, float, np.floating)):
+                    scores.append(float(val))
+            if not prix_row.empty and pd.notna(prix_row[phone].iloc[0]):
+                price = float(prix_row[phone].iloc[0])
+                if scores and price > 0:
+                    score_final = round((np.mean(scores) / price) * 1000, 2)
+                    smartphones_data[phone]['Score Final'] = score_final
+                else:
+                    smartphones_data[phone]['Score Final'] = None
+        except Exception as e:
+            smartphones_data[phone]['Score Final'] = None
+
 # Fonction principale de l’application : initialise l’interface, charge les données et gère la navigation entre les pages.
 def main():
     try:
@@ -205,7 +228,7 @@ def main():
         st.title("Comparison Table")
         st.markdown("---")
         st.sidebar.header("Filters")
-        categories = df_horizontal['CARACTÉRISTIQUES'].dropna().tolist()
+        categories = df_horizontal['CARACTÉRISTIQUES'].dropna().tolist() 
         st.sidebar.subheader("Select Categories to Display")
         category_groups = {
             "General": ["Marque", "Modèle", "Prix", "Année"],
@@ -255,6 +278,7 @@ def main():
         st.title("Graphics & Analysis")
         st.markdown("---")
         smartphones_data = get_smartphone_data_with_scores(df_horizontal)
+        add_score_final_to_smartphones(smartphones_data, df_horizontal)
         smartphone_names = list(smartphones_data.keys())
         st.subheader("Overall Score Comparison")
         score_categories = [
@@ -442,6 +466,7 @@ def main():
         st.title("Rankings")
         st.markdown("---")
         smartphones_data = get_smartphone_data_with_scores(df_horizontal)
+        add_score_final_to_smartphones(smartphones_data, df_horizontal)
         smartphone_names = list(smartphones_data.keys())
         st.subheader("Top 3 Smartphones - Overall Score")
         score_categories = [
@@ -569,7 +594,8 @@ def main():
     elif page == "Side-by-Side Comparison":
         st.title("Side-by-Side Comparison")
         st.markdown("---")
-        smartphones_data = get_smartphone_data_with_scores(df_horizontal)
+        .\.venv\Scripts\activate get_smartphone_data_with_scores(df_horizontal)
+        add_score_final_to_smartphones(smartphones_data, df_horizontal)
         smartphone_names = list(smartphones_data.keys())
         col1, col2 = st.columns(2)
         with col1:

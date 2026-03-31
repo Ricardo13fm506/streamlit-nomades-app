@@ -63,5 +63,4 @@ Intégration d’API de prix ou d'avis extérieurs
 Auteur:
 Développé par Ricardo13fm506 pour Nomades Advanced Technologies
 
-Contact
-Pour toute question ou suggestion : 
+
