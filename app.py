@@ -594,7 +594,7 @@ def main():
     elif page == "Side-by-Side Comparison":
         st.title("Side-by-Side Comparison")
         st.markdown("---")
-        .\.venv\Scripts\activate get_smartphone_data_with_scores(df_horizontal)
+        get_smartphone_data_with_scores(df_horizontal)
         add_score_final_to_smartphones(smartphones_data, df_horizontal)
         smartphone_names = list(smartphones_data.keys())
         col1, col2 = st.columns(2)
@@ -655,7 +655,7 @@ def main():
                     st.markdown(f"{c['comment']}")
                     st.markdown("---")
         else:
-            st.info("No comments yet. Be the first to comment!")
+            stgit .info("No comments yet. Be the first to comment!")
 
     # Pied de page de l’application
     st.markdown("---")
