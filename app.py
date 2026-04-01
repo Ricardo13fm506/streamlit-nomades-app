@@ -56,7 +56,7 @@ def load_comments():
 # Les lignes de score élevées, moyennes ou faibles sont colorées différemment pour faciliter la lecture.
 def style_dataframe(df):
     def highlight_scores(val):
-        if pd.notna(val):  # Vérifie si la valeur existe (n’est ni vide ni NaN)
+        if pd.notna(val):  # Check if value exists
             try:
                 num_val = float(val)
                 if num_val >= 8:
@@ -68,17 +68,15 @@ def style_dataframe(df):
             except:
                 pass
         return ''
-    # Détecte les colonnes contenant des scores.
+    # Detect score columns
     score_cols = [col for col in df.columns if 'Score' in str(col) or 'score' in str(col).lower()]
-    
-    # Formate tous les scores à 1 décimale, comme des chaînes de caractères.
     for col in score_cols:
         if pd.api.types.is_numeric_dtype(df[col]):
             df[col] = df[col].map(lambda x: f"{x:.1f}" if pd.notna(x) else x)
-    
-    # Applique les couleurs définies ci-dessus
-    styler = df.style.applymap(highlight_scores, subset=score_cols)
-    
+    # Apply highlighting column by column (compatible with pandas 2.x)
+    styler = df.style
+    for col in score_cols:
+        styler = styler.applymap(highlight_scores, subset=[col])
     return styler
 
 # Cette fonction construit un dictionnaire associant chaque smartphone à ses scores et caractéristiques.
