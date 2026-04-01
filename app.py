@@ -594,7 +594,7 @@ def main():
     elif page == "Side-by-Side Comparison":
         st.title("Side-by-Side Comparison")
         st.markdown("---")
-        get_smartphone_data_with_scores(df_horizontal)
+        smartphones_data = get_smartphone_data_with_scores(df_horizontal)
         add_score_final_to_smartphones(smartphones_data, df_horizontal)
         smartphone_names = list(smartphones_data.keys())
         col1, col2 = st.columns(2)
