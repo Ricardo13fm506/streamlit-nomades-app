@@ -655,7 +655,7 @@ def main():
                     st.markdown(f"{c['comment']}")
                     st.markdown("---")
         else:
-            stgit .info("No comments yet. Be the first to comment!")
+            st.info("No comments yet. Be the first to comment!")
 
     # Pied de page de l’application
     st.markdown("---")
